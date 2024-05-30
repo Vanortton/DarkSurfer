@@ -9,6 +9,7 @@ export default function App() {
     const [url, setUrl] = useState('https://www.google.com');
     const [homeScreen, setHomeScreen] = useState(true);
     const [showTopBar, setShowTopBar] = useState(true);
+    const [showBottomBar, setShowBottomBar] = useState(true);
 
     const handleSubmit = () => {
         setUrl(inputUrl);
@@ -27,6 +28,10 @@ export default function App() {
         setShowTopBar(!showTopBar);
     };
 
+    const handleToggleBottomBar = () => {
+        setShowBottomBar(!showBottomBar);
+    };
+
     const handleBackButton = () => {
         webViewRef.current.goBack();
     };
@@ -40,7 +45,7 @@ export default function App() {
             setUrl('');
             setInputUrl('');
         }
-    }, [homeScreen])
+    }, [homeScreen]);
 
     return (
         <View style={styles.container}>
@@ -85,7 +90,7 @@ export default function App() {
                     onNavigationStateChange={navState => setInputUrl(navState.url)}
                 />
             )}
-            {!homeScreen && (
+            {!homeScreen && showBottomBar && (
                 <View style={styles.bottomBar}>
                     <TouchableOpacity style={styles.button} onPress={handleBackButton}>
                         <Entypo name="chevron-thin-left" size={24} color="white" />
@@ -94,6 +99,14 @@ export default function App() {
                         <Entypo name="chevron-thin-right" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
+            )}
+            {!homeScreen && (
+                <TouchableOpacity style={{ ...styles.toggleButtonBottom, bottom: showBottomBar ? 60 : 0 }} onPress={handleToggleBottomBar}>
+                    {showBottomBar ?
+                        <Entypo name="chevron-thin-down" size={15} color="white" />
+                        :
+                        <Entypo name="chevron-thin-up" size={15} color="white" />}
+                </TouchableOpacity>
             )}
             <StatusBar style="light" />
         </View>
@@ -122,8 +135,6 @@ const styles = StyleSheet.create({
         paddingEnd: 20,
         paddingBottom: 10,
         paddingTop: 10,
-        position: 'absolute',
-        bottom: 0,
         width: '100%',
         backgroundColor: '#000',
     },
@@ -151,6 +162,20 @@ const styles = StyleSheet.create({
         transform: [{
             translateX: -40
         }],
+        zIndex: 1,
+    },
+    toggleButtonBottom: {
+        backgroundColor: '#5b636d',
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        width: 40,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        left: 20,
         zIndex: 1,
     },
     buttonText: {
