@@ -212,7 +212,7 @@ export default function App() {
                     </TouchableOpacity>
                 </View>
             </Modal>
-            <StatusBar style="light" />
+            <StatusBar style='dark' />
         </View>
     );
 }
