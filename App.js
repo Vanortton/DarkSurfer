@@ -1,6 +1,6 @@
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, FontAwesome5 } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
@@ -10,6 +10,21 @@ export default function App() {
     const [homeScreen, setHomeScreen] = useState(true);
     const [showTopBar, setShowTopBar] = useState(true);
     const [showBottomBar, setShowBottomBar] = useState(true);
+    const [shortcuts, setShortcuts] = useState([
+        { name: 'Google', icon: 'google', url: 'https://www.google.com' },
+        { name: 'YouTube', icon: 'youtube', url: 'https://www.youtube.com' },
+        { name: 'Instagram', icon: 'instagram', url: 'https://www.instagram.com' },
+        { name: 'Twitter', icon: 'twitter', url: 'https://www.twitter.com' },
+        { name: 'GitHub', icon: 'github', url: 'https://www.github.com' },
+        { name: 'Microsoft Copilot', icon: 'brain', url: 'https://copilot.microsoft.com/?dpwa=1' },
+        { name: 'OpenAI', icon: 'robot', url: 'https://chat.openai.com' },
+        { name: 'Gmail', icon: 'envelope', url: 'https://mail.google.com' },
+    ]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [newShortcutName, setNewShortcutName] = useState('');
+    const [newShortcutIcon, setNewShortcutIcon] = useState('');
+    const [newShortcutUrl, setNewShortcutUrl] = useState('');
+    const [editIndex, setEditIndex] = useState(null);
 
     const handleSubmit = () => {
         setUrl(inputUrl);
@@ -38,6 +53,29 @@ export default function App() {
 
     const handleForwardButton = () => {
         webViewRef.current.goForward();
+    };
+
+    const handleAddShortcut = () => {
+        if (editIndex !== null) {
+            const updatedShortcuts = [...shortcuts];
+            updatedShortcuts[editIndex] = { name: newShortcutName, icon: newShortcutIcon, url: newShortcutUrl };
+            setShortcuts(updatedShortcuts);
+            setEditIndex(null);
+        } else {
+            setShortcuts([...shortcuts, { name: newShortcutName, icon: newShortcutIcon, url: newShortcutUrl }]);
+        }
+        setNewShortcutName('');
+        setNewShortcutIcon('');
+        setNewShortcutUrl('');
+        setModalVisible(false);
+    };
+
+    const handleEditShortcut = (index) => {
+        setNewShortcutName(shortcuts[index].name);
+        setNewShortcutIcon(shortcuts[index].icon);
+        setNewShortcutUrl(shortcuts[index].url);
+        setEditIndex(index);
+        setModalVisible(true);
     };
 
     useEffect(() => {
@@ -77,9 +115,26 @@ export default function App() {
             </TouchableOpacity>
             {homeScreen ? (
                 <View style={styles.homeScreen}>
-                    <Image source={require('./assets/icon.png')} style={styles.logo} />
+                    <Image source={require('./assets/icon-darksurfer.png')} style={styles.logo} />
                     <Text style={styles.appName}>DarkSurfer</Text>
                     <Text style={styles.appDescription}>Um navegador simples e leve</Text>
+                    <View style={styles.shortcuts}>
+                        {shortcuts.map((shortcut, index) => (
+                            <TouchableOpacity key={index} style={styles.shortcut} onPress={() => {
+                                setUrl(shortcut.url)
+                                setInputUrl(shortcut.url)
+                                setHomeScreen(false)
+                            }} onLongPress={() => handleEditShortcut(index)}>
+                                <FontAwesome5 name={shortcut.icon} size={20} color="white" />
+                                <TouchableOpacity style={styles.editButton} onPress={() => handleEditShortcut(index)}>
+                                    <Entypo name="edit" size={15} color="white" />
+                                </TouchableOpacity>
+                            </TouchableOpacity>
+                        ))}
+                        <TouchableOpacity style={styles.shortcut} onPress={() => setModalVisible(true)}>
+                            <Entypo name="plus" size={20} color="white" />
+                        </TouchableOpacity>
+                    </View>
                     <Text style={styles.footer}>Versão 1.0.0 - Desenvolvido por Vanorton</Text>
                 </View>
             ) : (
@@ -108,6 +163,55 @@ export default function App() {
                         <Entypo name="chevron-thin-up" size={15} color="white" />}
                 </TouchableOpacity>
             )}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.modalView}>
+                    <Text style={styles.modalText}>{editIndex !== null ? 'Editar Atalho' : 'Adicionar Atalho'}</Text>
+                    <TextInput
+                        style={{ ...styles.simpleInput, marginBottom: 10 }}
+                        onChangeText={text => setNewShortcutName(text)}
+                        value={newShortcutName}
+                        placeholder="Nome do Atalho"
+                        placeholderTextColor="#888"
+                        autoCapitalize="none"
+                    />
+                    <TextInput
+                        style={{ ...styles.simpleInput, marginBottom: 10 }}
+                        onChangeText={text => setNewShortcutIcon(text)}
+                        value={newShortcutIcon}
+                        placeholder="Ícone do Atalho"
+                        placeholderTextColor="#888"
+                        autoCapitalize="none"
+                    />
+                    <TextInput
+                        style={{ ...styles.simpleInput, marginBottom: 10 }}
+                        onChangeText={text => setNewShortcutUrl(text)}
+                        value={newShortcutUrl}
+                        placeholder="URL do Atalho"
+                        placeholderTextColor="#888"
+                        autoCapitalize="none"
+                        keyboardType="url"
+                    />
+                    <TouchableOpacity style={{ ...styles.simpleButton, marginBottom: 10 }} onPress={handleAddShortcut}>
+                        <Text style={styles.buttonText}>{editIndex !== null ? 'Salvar' : 'Adicionar'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.simpleButton} onPress={() => {
+                        setEditIndex(null);
+                        setModalVisible(!modalVisible);
+                        setNewShortcutName('');
+                        setNewShortcutIcon('');
+                        setNewShortcutUrl('');
+                    }}>
+                        <Text style={styles.buttonText}>Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
             <StatusBar style="light" />
         </View>
     );
@@ -126,6 +230,8 @@ const styles = StyleSheet.create({
         paddingEnd: 10,
         paddingBottom: 0,
         paddingTop: 0,
+        zIndex: 1,
+        backgroundColor: '#000',
     },
     bottomBar: {
         flexDirection: 'row',
@@ -137,6 +243,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         width: '100%',
         backgroundColor: '#000',
+        zIndex: 1,
     },
     button: {
         backgroundColor: '#5b636d',
@@ -214,9 +321,84 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
     },
+    shortcuts: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+    },
+    shortcut: {
+        width: '40%',
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 10,
+        padding: 10,
+        backgroundColor: '#5b636d',
+        borderRadius: 10,
+    },
+    editButton: {
+        position: 'absolute',
+        top: 5,
+        right: 5,
+        backgroundColor: '#000',
+        borderRadius: 5,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    simpleInput: {
+        width: '100%',
+        height: 40,
+        borderWidth: 1,
+        padding: 10,
+        color: '#fff',
+        borderColor: '#5b636d',
+        borderRadius: 8,
+    },
+    simpleButton: {
+        backgroundColor: '#5b636d',
+        borderRadius: 8,
+        width: '100%',
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     footer: {
         position: 'absolute',
         bottom: 0,
         color: '#fff',
+        backgroundColor: '#000',
+        zIndex: 1,
+        width: '100%',
+        padding: 10,
+        textAlign: 'center',
     },
+    modalView: {
+        width: 300,
+        margin: 20,
+        backgroundColor: '#0f1114',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        borderColor: '#5b636d',
+        borderWidth: 1,
+        shadowRadius: 4,
+        elevation: 5,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{
+            translateX: -170
+        }, {
+            translateY: -170
+        }],
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+        color: 'white',
+        fontSize: 18,
+    }
 });
